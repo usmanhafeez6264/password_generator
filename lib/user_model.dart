@@ -1,39 +1,19 @@
-import 'dart:io';
-
-import 'package:flutter/material.dart';
-
-class UserModel {
+class Photo {
   int id;
-  final String img;
-  final String title;
+  String photo_name;
 
-  final String category;
+  Photo(this.id, this.photo_name);
 
-  final String user;
-  final String pass;
-  UserModel(
-      {@required this.id,
-      @required this.img,
-      @required this.title,
-      @required this.category,
-      @required this.user,
-      @required this.pass});
+  Map<String, dynamic> toMap() {
+    var map = <String, dynamic>{
+      'id': id,
+      'photo_name': photo_name,
+    };
+    return map;
+  }
 
-  factory UserModel.fromMap(Map<dynamic, dynamic> json) => UserModel(
-        id: json["id"],
-        img: json["img"],
-        title: json["title"],
-        category: json["category"],
-        user: json["user"],
-        pass: json["pass"],
-      );
-
-  Map<String, dynamic> toMap() => {
-        "id": id,
-        "img": img,
-        "title": title,
-        "category": category,
-        "user": user,
-        "pass": pass
-      };
+  Photo.fromMap(Map<String, dynamic> map) {
+    id = map['id'];
+    photo_name = map['photo_name'];
+  }
 }

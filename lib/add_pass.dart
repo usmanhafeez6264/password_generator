@@ -22,13 +22,33 @@ class _AddPassState extends State<AddPass> {
   Future<File> imageFile;
   Image image;
   DBHelper dbHelper;
+  List<Photo> images;
   String id;
-  List<UserModel> images;
+
   @override
   void initState() {
     super.initState();
     images = [];
     dbHelper = DBHelper();
+    refreshImages();
+  }
+
+  refreshImages() {
+    dbHelper.getPhotos().then((imgs) {
+      setState(() {
+        images.clear();
+        images.addAll(imgs);
+      });
+    });
+  }
+
+  pickImageFromGallery() {
+    ImagePicker.pickImage(source: ImageSource.gallery).then((imgFile) {
+      String imgString = Utility.base64String(imgFile.readAsBytesSync());
+      Photo photo = Photo(0, imgString);
+      dbHelper.save(photo);
+      refreshImages();
+    });
   }
 
   TextEditingController titleController = TextEditingController();
@@ -62,29 +82,19 @@ class _AddPassState extends State<AddPass> {
 
   var _image;
   final ImagePicker imagePicker = ImagePicker();
-  Future imgFromGallery() async {
-    try {
-      ImagePicker.pickImage(source: ImageSource.gallery).then((imgFile) {
-        String imgString = Utility.base64String(imgFile.readAsBytesSync());
-        List<UserModel> photo = [
-          UserModel(
-              id: 1,
-              img: imgString,
-              title: titleController.text,
-              category: "category",
-              user: nameController.text,
-              pass: newPassword)
-        ];
-        dbHelper.save(photo);
-        // setState(() {
-        //   images = photo;
-        //   print(images);
-        // });
-      });
-      setState(() {});
-    } catch (error) {
-      print(error);
-    }
+  gridView() {
+    return Padding(
+      padding: EdgeInsets.all(5.0),
+      child: GridView.count(
+        crossAxisCount: 3,
+        childAspectRatio: 1.0,
+        mainAxisSpacing: 4.0,
+        crossAxisSpacing: 4.0,
+        children: images.map((photo) {
+          return Utility.imageFromBase64String(photo.photo_name);
+        }).toList(),
+      ),
+    );
   }
 
   @override
@@ -113,7 +123,7 @@ class _AddPassState extends State<AddPass> {
                     child: IconButton(
                         color: Colors.grey,
                         onPressed: () {
-                          imgFromGallery();
+                          pickImageFromGallery();
                         },
                         icon: Icon(Icons.done, color: Colors.green)),
                   ),
@@ -122,7 +132,7 @@ class _AddPassState extends State<AddPass> {
                   height: 20,
                 ),
                 GestureDetector(
-                  onTap: () => imgFromGallery(),
+                  onTap: () => pickImageFromGallery(),
                   child: CircleAvatar(
                     radius: 55,
                     backgroundColor: Colors.blue,
@@ -366,7 +376,11 @@ class _AddPassState extends State<AddPass> {
                           ),
                         ),
                       )
-                    : Text(images.isEmpty ? "EMoty" : images[0].category)
+                    : Container(
+                        height: 700,
+                        width: 600,
+                        child: gridView(),
+                      )
                 // ListView.builder(
                 //     shrinkWrap: true,
                 //     itemCount: images.length,
